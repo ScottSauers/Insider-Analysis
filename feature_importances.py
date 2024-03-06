@@ -11,7 +11,7 @@ from sklearn.impute import SimpleImputer
 from sklearn.pipeline import Pipeline
 
 # Load the dataset
-df = pd.read_csv('/Users/scott/Downloads/stock/NASDAQ_fundamentals.csv')
+df = pd.read_csv('NASDAQ_fundamentals.csv')
 
 # Drop rows with missing target values
 df = df.dropna(subset=[df.columns[1]])
