@@ -22,22 +22,14 @@ def ticker_to_cik(ticker):
     return "Ticker not found or not listed on Nasdaq"
 
 
-def get_links(cik_number):
-    # SEC EDGAR base URL for browsing
+def get_links(cik_number, dates):
     base_url = 'https://www.sec.gov/cgi-bin/browse-edgar'
-
-    # Correct CIK for Microsoft and the desired Form Type
-    #cik_number = '789019'  # Microsoft's CIK without leading zeros
-    form_type = '4'  # Targeting only Form 4 filings
-
-    # Headers to mimic web browser access, with a declared user-agent
+    form_type = '4'  # Form 4 filings
     headers = {
         'User-Agent': 'Sample Company Name AdminContact@samplecompanydomain.com',
         'Accept-Encoding': 'gzip, deflate',
         'Host': 'www.sec.gov'
     }
-
-    # Parameters for the GET request
     params = {
         'action': 'getcompany',
         'CIK': cik_number,
@@ -45,22 +37,42 @@ def get_links(cik_number):
         'dateb': '',
         'owner': 'include',
         'output': 'atom',
-        'start': 0,
-        'count': 999
     }
 
     links = []
-    response = requests.get(base_url, headers=headers, params=params)
+    start = 0
+    entries_per_page = 100
 
-    if response.status_code == 200:
-        soup = BeautifulSoup(response.content, 'lxml-xml')
-        entries = soup.find_all('entry')
-        for entry in entries:
-            accession_number = entry.find('accession-number').text
-            filing_href = f"https://www.sec.gov/Archives/edgar/data/{cik_number}/{accession_number.replace('-', '')}/{accession_number}.txt"
-            links.append(filing_href)
+    if '-' in dates:
+        start_year, end_year = map(int, dates.split('-'))
     else:
-        print(f"Failed to fetch data, status code: {response.status_code}")
+        start_year = end_year = int(dates)
+
+    while True:
+        params['start'] = start
+        params['count'] = entries_per_page
+        response = requests.get(base_url, headers=headers, params=params)
+
+        if response.status_code == 200:
+            soup = BeautifulSoup(response.content, 'lxml-xml')
+            entries = soup.find_all('entry')
+            if not entries:
+                break
+
+            for entry in entries:
+                accession_number = entry.find('accession-number').text
+                year_part = accession_number.split('-')[1]
+                # Adjust the century based on the year part's first digit
+                year = int("19" + year_part if year_part.startswith('9') else "20" + year_part)
+
+                if start_year <= year <= end_year:
+                    filing_href = f"https://www.sec.gov/Archives/edgar/data/{cik_number}/{accession_number.replace('-', '')}/{accession_number}.txt"
+                    links.append(filing_href)
+
+            start += entries_per_page
+        else:
+            print(f"Failed to fetch data, status code: {response.status_code}")
+            break
 
     return links
 
@@ -238,7 +250,7 @@ def parse_345(link):
 
     linkRequest = str(requests.get(link, headers={'User-Agent': 'Mozilla'}).content)
     #print(linkRequest[:5000])
-    if '<TYPE>424B2' not in linkRequest:
+    if '<TYPE>424B' not in linkRequest:
         text = clean_text_xml(linkRequest)
         identityData = get_identity(text)
         dataNonTable = get_non_derivative_table(text)
@@ -259,11 +271,11 @@ def parse_345(link):
         return None
 
 
-def ticker_to_csv(ticker):
+def ticker_to_csv(ticker, dates):
     cik = ticker_to_cik(ticker)
     print(f"The CIK is: {cik}")
 
-    links = get_links(cik)
+    links = get_links(cik, dates)
     total_links = len(links)
     print(f"Processing {total_links} filings...")
 
@@ -283,4 +295,8 @@ def ticker_to_csv(ticker):
     all_data.to_csv(csv_filename, index=False)
     print(f"Data saved to {csv_filename}")
 
-ticker_to_csv("MSFT") #replace with your ticker
+
+
+ticker = "MSFT"
+dates = "2014-2024"
+ticker_to_csv(ticker, dates)
