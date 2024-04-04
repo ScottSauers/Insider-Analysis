@@ -1,1 +1,1 @@
-Automatically parse SEC form 4 filings into a spreadsheet, given specific years of interest and a ticker.
+Automatically parses SEC form 4 filings into a spreadsheet, given specific years of interest and a ticker or group of stocks based on a fundamental (e.g., all companies with under 25M market cap). Then, trains price change prediction models on this data.
