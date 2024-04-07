@@ -7,11 +7,15 @@ import re
 import numpy as np
 import json
 import os
+import time
 
 
 def encode(ticker, dates):
     if not os.path.exists('insider_data'):
         os.makedirs('insider_data')
+
+    if not os.path.exists("sec_form_4"):
+        os.makedirs("sec_form_4", exist_ok=True)
 
 
     def ticker_to_cik(ticker):
@@ -280,7 +284,18 @@ def encode(ticker, dates):
 
             if text.find("footnotes") is not None:
                 data["footnotes"] = text.find("footnotes").text
+                #print(link)
+            #print(data)
+
+            filename = os.path.join("sec_form_4", link.replace("https://", "").replace("/", "_").replace(".", "_").rsplit(".", 1)[0] + ".csv")
+
+            # Save the 'data' DataFrame to a CSV file using the generated filename.
+            data.to_csv(filename, index=False)
+
+            print(f"Data saved to CSV file: {filename}")
             return(data)
+
+
 
     def csv_filter(input_csv_path, output_csv_path):
         # Load the CSV file into a pandas DataFrame
@@ -423,7 +438,7 @@ def encode(ticker, dates):
                 return 2
             elif 'vice president' in title_lower or 'vp' in title_lower:
                 return 4
-            elif 'president' in title_lower:  # This comes after checking for VP to avoid mismatch
+            elif 'president' in title_lower or 'COB' in title_lower:  # This comes after checking for VP to avoid mismatch
                 return 3
             elif any(word in title_lower for word in ['cmo', 'medical', 'therapeutics', 'science', 'chief scientific officer']):
                 return 5
@@ -488,14 +503,32 @@ def encode(ticker, dates):
         all_data = pd.DataFrame()  # Initialize an empty DataFrame to hold all data
 
         for index, link in enumerate(links):
-            print(f"Trying {link}...")
-            data = parse_345(link)
+            i = 0
+            while True:
+                try:
+                    print(f"Trying {link}...")
+                    filename = os.path.join("sec_form_4", link.replace("https://", "").replace("/", "_").replace(".", "_").rsplit(".", 1)[0] + ".csv")
 
-            # Concatenate the current data DataFrame with the new one, aligning on columns and adding new ones as needed
-            all_data = pd.concat([all_data, data], ignore_index=True, sort=False)
+                    if os.path.exists(filename):
+                        data = pd.read_csv(filename)
+                        print(f"Loaded {link} from existing file.")
+                    else:
+                        data = parse_345(link)
 
-            percent_complete = ((index + 1) / total_links) * 100
-            print(f"{index + 1} completed; percent Complete: {percent_complete:.2f}%")
+                    # Concatenate the current data DataFrame with the new one, aligning on columns and adding new ones as needed
+                    all_data = pd.concat([all_data, data], ignore_index=True, sort=False)
+
+                    percent_complete = ((index + 1) / total_links) * 100
+                    print(f"{index + 1} completed; percent Complete: {percent_complete:.2f}%")
+
+                    break
+                except:
+                    i += 5
+                    print(f"Failed to get sec data from {link}. Is it in XML format?")
+                    print(f"Waiting {i} seconds before retrying...")
+                    time.sleep(i*0.0001)
+                    if i > 0:
+                        break
 
         csv_filename = f"insider_data/{ticker}_data.csv"
         all_data.to_csv(csv_filename, index=False)

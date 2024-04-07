@@ -2,6 +2,8 @@ import pandas as pd
 from datetime import datetime, timedelta
 import os
 
+from get_prices import find_price_for_date, find_next_available_price, get_buy_date
+
 def make_data_file(ticker, days_to_add):
     #ticker = "SNPX"
 
@@ -44,44 +46,23 @@ def make_data_file(ticker, days_to_add):
         results_df.to_csv(results_path, index=False)
         print(f"Results saved to {results_path}")
 
-    def find_price_for_date(date, historical_prices_df):
-        # Adjusted to ensure consistency with 'find_next_available_price'
-        if date in historical_prices_df.index:
-            return date, historical_prices_df.loc[date, 'Close']
-        else:
-            return None, None
-
-    def find_price_for_date(date, historical_prices_df):
-        current_date = date
-        if date in historical_prices_df.index:
-            return date, historical_prices_df.loc[date, 'Close']
-        else:
-            while current_date not in historical_prices_df.index:
-                current_date -= timedelta(days=1)
-                if current_date < historical_prices_df.index.min():
-                    return None, None
-            return current_date, historical_prices_df.loc[current_date, 'Close']
-
-    def find_next_available_price(effective_date, historical_prices_df, days_to_add):
-        current_date = effective_date + timedelta(days=days_to_add)
-        while current_date not in historical_prices_df.index:
-            current_date += timedelta(days=1)
-            if current_date > historical_prices_df.index.max():
-                return None, None
-        return current_date, historical_prices_df.loc[current_date, 'Close']
-
     def iterate_transactions(encoded_df, historical_df, days_to_add):
         results = []
         for _, row in encoded_df.iterrows():
             effective_date = row['effectiveDate']
             if pd.notnull(effective_date):
-                effective_date_price_info = find_price_for_date(effective_date, historical_df)
+                #print("CORRECT date format: ", effective_date)
+                #print("CORRECT historical_df format: " historical_df)
+                effective_date_price_info = get_buy_date(effective_date, historical_df)
+                #print(effective_date_price_info)
                 next_available_date, next_available_price_info = find_next_available_price(effective_date, historical_df, days_to_add)
 
                 # Processing to match the handling of 'Next Available Price'
                 if next_available_date is not None:
                     days_diff = (next_available_date - effective_date).days
-                    print(f"Effective date: {effective_date}, Next available date: {next_available_date}, Days difference: {days_diff}")
+                    #print(f"Effective date: {effective_date}, Next available date: {next_available_date}, Days difference: {days_diff}")
+                    if days_diff != days_to_add:
+                        print(f"Day number mismatch. Effective date: {effective_date}, Next available date: {next_available_date}, Days difference: {days_diff}")
                 else:
                     print(f"Effective date: {effective_date}, No available price information for next available date.")
 
@@ -114,7 +95,7 @@ def make_data_file(ticker, days_to_add):
         df = pd.read_csv(csv_path)
 
         # Calculate the price change and add it as a new column
-        df['Price Change'] = df['Next Available Price'] - df['Effective Date Price']
+        df['Price Change'] = (df['Next Available Price'] - df['Effective Date Price'])/(abs(df['Effective Date Price']))
 
         # Save the DataFrame with the new column to the new file
         df.to_csv(csv_path, index=False)

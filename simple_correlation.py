@@ -27,23 +27,9 @@ def test_association(ticker):
     df_original = load_and_preprocess(csv_path)
     original_condition = (df_original['0_gift_comp_vesting_1_other'] == 1) & (df_original['transaction_1_Disposed_2_Acquired'] == 2)
     df_original_filtered = df_original[original_condition]
-    perform_test(df_original_filtered, "Original")
+    perform_test(df_original_filtered, "buying, non-gift")
     df_original_filtered[['Effective Date', 'Price Change']].to_csv(os.path.join(os.getcwd(), 'insider_data', f"{ticker}_price_change_analysis.csv"), index=False)
     print(f"Filtered data saved to {os.path.join(os.getcwd(), 'insider_data', f'{ticker}_price_change_analysis.csv')}\n")
-
-    # Test for Top 50% Total Dollar Amount
-    df_top50 = load_and_preprocess(csv_path)
-    median_value = df_top50['total_dollar_amount'][df_top50['total_dollar_amount'] > 0].median()
-    top_50_condition = (df_top50['total_dollar_amount'] > median_value) & (df_top50['0_gift_comp_vesting_1_other'] == 1) & (df_top50['transaction_1_Disposed_2_Acquired'] == 2)
-    df_top50_filtered = df_top50[top_50_condition]
-    perform_test(df_top50_filtered, "Top 50% Total Dollar Amount")
-
-    # Test for Non-Zero Total Dollar Amount
-    df_non_zero = load_and_preprocess(csv_path)
-    non_zero_condition = (df_non_zero['total_dollar_amount'] > 0) & (df_non_zero['0_gift_comp_vesting_1_other'] == 1) & (df_non_zero['transaction_1_Disposed_2_Acquired'] == 2)
-    df_non_zero_filtered = df_non_zero[non_zero_condition]
-    perform_test(df_non_zero_filtered, "Non-Zero Total Dollar Amount")
-
 
 
     def correlation_test(ticker):
@@ -72,4 +58,4 @@ def test_association(ticker):
     correlation_test(ticker)
 
 # Example usage
-test_association("CRSP")
+#test_association("ALCO")

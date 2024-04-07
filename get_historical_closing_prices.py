@@ -1,16 +1,23 @@
 import pandas as pd
 from yahooquery import Ticker
+from datetime import datetime
+import send2trash
 import os
 
 
 
 def hist_prices(ticker, start_year, end_year):
 
-    if not os.path.exists('historical'):
-        os.makedirs('historical')
-
     # Dynamic output file path based on the ticker
     output_file_path = f"historical/{ticker}_historical_close.csv"
+
+    try:
+        send2trash.send2trash(output_file_path)
+    except:
+        None
+
+    if not os.path.exists('historical'):
+        os.makedirs('historical')
 
     def fetch_and_save_historical_close(ticker, start_date, end_date):
         """
@@ -46,6 +53,11 @@ def hist_prices(ticker, start_year, end_year):
             # Insert the ticker column at the beginning
             historical_data.insert(0, 'Ticker', ticker)
 
+            # Current date doesn't have close yet
+            current_date = datetime.today().strftime('%Y-%m-%d')
+            historical_data = historical_data[historical_data['Date'].astype(str).str[:10] != current_date]
+
+
             # Save or append the data to the dynamically named CSV file
             if not os.path.exists(output_file_path):
                 historical_data.to_csv(output_file_path, index=False)
@@ -62,4 +74,4 @@ def hist_prices(ticker, start_year, end_year):
     #fetch_and_save_historical_close("MSFT", "2014", "2024")
     fetch_and_save_historical_close(ticker, start_year, end_year)
 
-hist_prices("MSFT", "2024", "2024")
+#hist_prices("AAPL", "2014", "2024")

@@ -297,6 +297,6 @@ def ticker_to_csv(ticker, dates):
 
 
 
-ticker = "MSFT"
+ticker = "PACB"
 dates = "2014-2024"
 ticker_to_csv(ticker, dates)
