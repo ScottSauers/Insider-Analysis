@@ -2,7 +2,8 @@ import pandas as pd
 
 def filter():
     # Load the dataset
-    df = pd.read_csv('NASDAQ_fundamentals.csv')
+    #df = pd.read_csv('NASDAQ_fundamentals.csv')
+    df = pd.read_csv('combined_fundamentals.csv')
 
     # Initial number of stocks
     total_stocks_before = len(df)
@@ -19,10 +20,10 @@ def filter():
     percentage_filtered_out = ((total_stocks_before - total_stocks_after) / total_stocks_before) * 100
 
     # Save the filtered dataframe to a new CSV file
-    filtered_df.to_csv('filtered_NASDAQ_fundamentals.csv', index=False)
+    filtered_df.to_csv('filtered_combined_fundamentals.csv', index=False)
 
     # Print the results
-    print("Filtered data saved to filtered_NASDAQ_fundamentals.csv.")
+    print("Filtered data saved to filtered_combined_fundamentals.csv.")
     print(f"Total stocks before filter: {total_stocks_before}")
     print(f"Percentage of total stocks filtered out: {percentage_filtered_out:.2f}%")
     print(f"Total stocks after filter: {total_stocks_after}")
