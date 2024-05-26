@@ -103,7 +103,7 @@ def train_and_evaluate(training_data, validation_data, sell_timedelta, date_vali
     #evaluate_strategy(ticker, predictions_df_ridge, sell_timedelta)
 
 # Example usage
-ticker = "UNFI"
+ticker = "ABBV"
 validation_percentage = 20
 sell_timedelta = 7
 training_data, validation_data, date_validation_data = prepare_data(ticker, validation_percentage)
