@@ -12,12 +12,14 @@ def check_processed_tickers(output_file_path):
         return set()
 
 # Common function to process a ticker
-def process_ticker(ticker, processed_tickers, output_file_path):
+def process_ticker(ticker, processed_tickers, output_file_path, silent):
     if ticker in processed_tickers:
-        print(f'{ticker} has already been processed. Skipping.')
+        if not silent:
+            print(f'{ticker} has already been processed. Skipping.')
         return
 
-    print(f'Processing {ticker}...')
+    if not silent:
+        print(f'Processing {ticker}...')
     t = Ticker(ticker)
 
     # Initialize a dictionary to hold data for the current ticker
@@ -66,10 +68,11 @@ def process_ticker(ticker, processed_tickers, output_file_path):
     else:
         df.to_csv(output_file_path, mode='a', header=False, index=False)
 
-    print(f'Finished processing {ticker}. Data saved.')
+    if not silent:
+        print(f'Finished processing {ticker}. Data saved.')
 
 # Common function to fetch and process data
-def fetch_and_process_data(input_file_path, output_file_path, ticker_column_index=0, sep=',', encoding='utf-8'):
+def fetch_and_process_data(input_file_path, output_file_path, silent, ticker_column_index=0, sep=',', encoding='utf-8'):
     # Read the input file to get the list of tickers
     tickers_df = pd.read_csv(input_file_path, sep=sep, encoding=encoding)
     tickers = tickers_df.iloc[:, ticker_column_index].tolist()
@@ -79,7 +82,7 @@ def fetch_and_process_data(input_file_path, output_file_path, ticker_column_inde
 
     # Process tickers in parallel
     with ThreadPoolExecutor(max_workers=10) as executor:
-        futures = {executor.submit(process_ticker, ticker, processed_tickers, output_file_path): ticker for ticker in tickers}
+        futures = {executor.submit(process_ticker, ticker, processed_tickers, output_file_path, silent): ticker for ticker in tickers}
         for future in as_completed(futures):
             ticker = futures[future]
             try:
@@ -90,18 +93,18 @@ def fetch_and_process_data(input_file_path, output_file_path, ticker_column_inde
     print(f'Completed processing all tickers. Data saved to {output_file_path}.')
 
 # Function to process NASDAQ data
-def NASDAQ_fundamentals():
-    fetch_and_process_data('NASDAQ.csv', 'NASDAQ_fundamentals.csv')
+def NASDAQ_fundamentals(silent):
+    fetch_and_process_data('NASDAQ.csv', 'NASDAQ_fundamentals.csv', silent)
 
 # Function to process NYSE data
-def NYSE_fundamentals():
-    fetch_and_process_data('NYSE_tickers.txt', 'NYSE_fundamentals.csv', ticker_column_index=1, sep='\t', encoding='ISO-8859-1')
+def NYSE_fundamentals(silent):
+    fetch_and_process_data('NYSE_tickers.txt', 'NYSE_fundamentals.csv', silent, ticker_column_index=1, sep='\t', encoding='ISO-8859-1')
 
 # Function to combine NASDAQ and NYSE data
 def combine_fundamentals():
     nasdaq_file_path = 'NASDAQ_fundamentals.csv'
     nyse_file_path = 'NYSE_fundamentals.csv'
-    combined_file_path = 'Combined_fundamentals.csv'
+    combined_file_path = 'combined_fundamentals.csv'
 
     # Read the NASDAQ and NYSE data files
     nasdaq_df = pd.read_csv(nasdaq_file_path)
@@ -113,13 +116,13 @@ def combine_fundamentals():
     # Save the combined dataframe to a new CSV file
     combined_df.to_csv(combined_file_path, index=False)
 
-    print('Combined data saved to Combined_fundamentals.csv.')
+    print('Combined data saved to combined_fundamentals.csv.')
 
 # Main function to process and combine all data
-def main():
-    NASDAQ_fundamentals()
-    NYSE_fundamentals()
+def get_fundamentals(silent):
+    NASDAQ_fundamentals(silent)
+    NYSE_fundamentals(silent)
     combine_fundamentals()
 
 if __name__ == '__main__':
-    main()
+    get_fundamentals(silent=0)
