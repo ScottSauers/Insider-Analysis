@@ -5,7 +5,7 @@ import os
 from get_prices import find_price_for_date, find_next_available_price, get_buy_date
 
 def make_data_file(ticker, days_to_add):
-    #ticker = "SNPX"
+    #ticker = "UNFI"
 
     current_dir = os.getcwd()
     encoded_data_path = os.path.join(current_dir, 'insider_data', f'{ticker}_encoded_data.csv')
@@ -121,3 +121,5 @@ def make_data_file(ticker, days_to_add):
         combined_df.to_csv(encoded_data_path, index=False)
     else:
         print("The DataFrames have a different number of rows; cannot concatenate them directly without additional alignment.")
+
+#make_data_file("UNFI", 2)

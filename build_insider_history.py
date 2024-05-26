@@ -1,6 +1,6 @@
 import pandas as pd
 import random
-from get_fundamentals import NASDAQ_fundamentals
+from get_fundamentals import get_fundamentals
 from filter_fundamentals import filter
 from get_historical_closing_prices import hist_prices
 from ticker_to_encoded_csv import encode
@@ -14,14 +14,14 @@ end_year = 2024
 dates = f"{start_year}-{end_year}"
 days_to_add = 2
 
-NASDAQ_fundamentals()
+get_fundamentals(silent=1)
 filter()
 
-filtered_df = pd.read_csv('filtered_NASDAQ_fundamentals.csv')
+filtered_df = pd.read_csv('filtered_combined_fundamentals.csv')
 tickers = filtered_df.iloc[:, 0].tolist()
 
 #random.shuffle(tickers)
-tickers = ["UNFI"]
+tickers = ["ABBV"]
 
 with open('finished.csv', 'r') as file:
     finished_tickers = set(file.read().splitlines())
