@@ -19,18 +19,38 @@ def encode(ticker, dates):
 
 
     def ticker_to_cik(ticker):
-        file_path = "company_tickers.json"  # Assuming the file is in the current directory
-        try:
-            with open(file_path, 'r') as file:
-                data = json.load(file)
+        json_file_path = "company_tickers.json"  # Assuming the file is in the current directory
+        ticker = ticker.lower()  # Convert the input ticker to lowercase for case-insensitive comparison
 
-            # Iterate over each entry in the "data" list to find the matching ticker and exchange
-            for entry in data["data"]:
-                if entry[2] == ticker and entry[3] == "Nasdaq":
-                    return entry[0]  # Return the CIK number if found for NASDAQ listed company
+        try:
+            # Attempt to find the ticker in the JSON file first
+            with open(json_file_path, 'r') as file:
+                data = json.load(file)
+            for entry in data['data']:
+                if entry[2].lower() == ticker and entry[3] == "Nasdaq":
+                    return entry[0]  # Return the CIK number if found for a NASDAQ listed company
+
         except Exception as e:
             return f"Error: {str(e)}"
+
+        # If not found in the JSON or not listed on Nasdaq, check in the ticker.txt file
+        txt_file_path = "ticker.txt"
+        try:
+            with open(txt_file_path, 'r') as file:
+                for line in file:
+                    parts = line.strip().split('\t')
+                    if parts[0].lower() == ticker:
+                        print("Warning: Ticker found but not listed on Nasdaq in the JSON file.")
+                        return parts[1]  # Return the CIK number from the ticker.txt
+        except Exception as e:
+            return f"Error reading the ticker.txt file: {str(e)}"
+
         return "Ticker not found or not listed on Nasdaq"
+
+    # Example usage
+    #cik_number = ticker_to_cik('AAPL')
+    #print(cik_number)
+
 
 
     def get_links(cik_number, dates):

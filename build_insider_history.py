@@ -21,14 +21,27 @@ filtered_df = pd.read_csv('filtered_NASDAQ_fundamentals.csv')
 tickers = filtered_df.iloc[:, 0].tolist()
 
 #random.shuffle(tickers)
-tickers = ["AAPL"]
+tickers = ["UNFI"]
+
+with open('finished.csv', 'r') as file:
+    finished_tickers = set(file.read().splitlines())
 
 for ticker in tickers:
-    print(f"\nStarting {ticker}...")
-    open('finished.csv', 'a').write(f"{ticker}\n")
-    hist_prices(ticker, start_year, end_year)
-    encode(ticker, dates)
-    make_data_file(ticker, days_to_add)
-    #test_association(ticker)
-    collapse_ticker_data(ticker)
-    analyze_trades(ticker)
+    if ticker in finished_tickers:
+        print(f"Skipping {ticker}, already processed.")
+        continue
+
+    try:
+        print(f"\nStarting {ticker}...")
+        hist_prices(ticker, start_year, end_year)
+        encode(ticker, dates)
+        make_data_file(ticker, days_to_add)
+        #test_association(ticker)
+        collapse_ticker_data(ticker)
+        analyze_trades(ticker)
+        with open('finished.csv', 'a') as file:
+            file.write(f"{ticker}\n")
+
+    except Exception as e:
+        with open('fails.csv', 'a') as file:
+            file.write(f"{ticker}\n")

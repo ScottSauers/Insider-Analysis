@@ -69,14 +69,14 @@ def train_and_evaluate(training_data, validation_data, sell_timedelta, date_vali
     y_validation = validation_data['Price Change']
 
     # Train and evaluate Lasso
-    lasso = Lasso(random_state=42, alpha=0.001, max_iter=10000)
+    lasso = Lasso(random_state=42, alpha=0.0001, max_iter=10000)
     lasso.fit(X_train, y_train)
     predictions_lasso = lasso.predict(X_validation)
     importance_df_lasso = get_prediction_info(lasso, y_train, lasso.predict(X_train), X_validation, y_validation, predictions_lasso)
     save_model_results(lasso, importance_df_lasso, f"{ticker}_lasso")
 
     # Train and evaluate Ridge
-    ridge = Ridge(random_state=42, alpha=100, solver='lsqr')
+    ridge = Ridge(random_state=42, alpha=0.0001, solver='lsqr')
     ridge.fit(X_train, y_train)
     predictions_ridge = ridge.predict(X_validation)
     importance_df_ridge = get_prediction_info(ridge, y_train, ridge.predict(X_train), X_validation, y_validation, predictions_ridge)
@@ -103,8 +103,8 @@ def train_and_evaluate(training_data, validation_data, sell_timedelta, date_vali
     #evaluate_strategy(ticker, predictions_df_ridge, sell_timedelta)
 
 # Example usage
-ticker = "VKTX"
+ticker = "UNFI"
 validation_percentage = 20
-sell_timedelta = 2
+sell_timedelta = 7
 training_data, validation_data, date_validation_data = prepare_data(ticker, validation_percentage)
 train_and_evaluate(training_data, validation_data, sell_timedelta, date_validation_data)

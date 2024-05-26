@@ -114,7 +114,7 @@ def train_and_evaluate(training_data, validation_data, sell_timedelta, date_vali
 
 
 # Example usage
-ticker = "VKTX"
+ticker = "UNFI"
 validation_percentage = 20
 sell_timedelta = 2
 training_data, validation_data, date_validation_data = prepare_data(ticker, validation_percentage)
