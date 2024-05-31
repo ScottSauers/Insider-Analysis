@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 from scipy.stats import ttest_ind, sem
 
 # Load the dataset
-path_to_csv = '/ABBV_encoded_data_expanded.csv'
+path_to_csv = '/KOSS_encoded_data_expanded.csv'
 data = pd.read_csv(path_to_csv)
 
 # Convert dates to datetime format
@@ -146,7 +146,7 @@ selling_l1o_year_results_days = l1o_analysis_year(selling_data, 'transactionShar
 def interpret_results(group, group_label, p_values, percent_differences):
     mean_p_value = np.mean(p_values)
     largest_p_value = np.max(p_values)
-    if percent_differences:
+    if mean_p_value < 0.05:
         mean_percent_difference = np.mean(percent_differences)
         return f"The {group_label} ({group}) is statistically significant and robust to L1O analysis. The activity is {mean_percent_difference:.2f}% higher than the overall mean. Mean p-value: {mean_p_value:.4f}, Largest p-value: {largest_p_value:.4f}"
     else:
